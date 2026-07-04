@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tru-Trac — Reference Build</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ============================================================
+   TRU-TRAC REFERENCE BUILD — tokens are the site's own,
+   with Phase-0 corrections applied (see 02-phase-0-implementation.md)
+   ============================================================ */
+:root{
+  /* brand — corrected */
+  --tt-red-text:#d52121;        /* AA: 5.16 on white, 4.73 on paper */
+  --tt-red-display:#e52a2a;     /* large type + decor only */
+  --tt-red-press:#c81f1f;
+  --tt-ink:#111;
+  --tt-ink-soft:#5a5a5a;
+  --tt-paper:#f5f5f5;
+  --tt-white:#fff;
+  --tt-line:#e0e0e0;
+  --tt-dark:#0a0a0c;            /* site's own dark theme-color */
+  --tt-dark-2:#141417;
+  --tt-line-on-dark:rgba(255 255 255/.14);
+  --fg-on-dark:#f2f2f0;
+  --fg-on-dark-soft:rgba(255 255 255/.62);
+  --fg-on-red:#fff;
+  --fg-on-red-soft:rgba(255 255 255/.93);  /* was .78 → 2.65:1 FAIL */
+
+  /* type — their fluid scale */
+  --font-sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --fs-eyebrow:12px; --fs-small:14px; --fs-body:16px; --fs-nav:15px;
+  --fs-h3:22px;
+  --fs-h2:clamp(28px,2.6vw,40px);
+  --fs-h1:clamp(40px,4.5vw,64px);
+  --fs-display:clamp(56px,7vw,96px);
+  --fs-mega:clamp(64px,8.5vw,116px);
+  --fs-stat:clamp(48px,5.5vw,88px);
+  --lh-display:.92; --lh-h2:1.05; --lh-body:1.55;
+
+  /* space / radius / motion — theirs */
+  --page-pad-x:clamp(20px,4vw,64px);
+  --section-pad-y:clamp(72px,6vw,96px);
+  --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px; --sp-8:64px; --sp-9:96px;
+  --radius-btn:4px; --radius-card:clamp(16px,2vw,28px);
+  --dur-1:.16s; --dur-2:.28s;
+  --ease:cubic-bezier(.32,.72,0,1);
+  --hairline:1px solid var(--tt-line);
+  --container:1480px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--font-sans);font-size:var(--fs-body);line-height:var(--lh-body);
+  color:var(--tt-ink);background:var(--tt-paper);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+h1,h2,h3,p{margin:0}
+h1,h2{text-wrap:balance;font-weight:800;letter-spacing:-.02em}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--tt-red-text);outline-offset:2px;border-radius:2px}
+
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--tt-ink);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius-btn) var(--radius-btn)}
+.skip:focus{left:var(--page-pad-x)}
+
+.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--page-pad-x)}
+.eyebrow{
+  font-size:var(--fs-eyebrow);font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tt-red-text);display:inline-flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--tt-red-text)}
+
+/* ---------- banner ---------- */
+.ref-banner{
+  background:var(--tt-ink);color:rgba(255 255 255/.85);font-size:13px;
+  padding:8px var(--page-pad-x);text-align:center;letter-spacing:.02em;
+}
+.ref-banner strong{color:#fff;font-weight:600}
+
+/* ---------- header ---------- */
+.site-head{
+  position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--tt-paper) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:var(--hairline);
+}
+.site-head .wrap{display:flex;align-items:center;gap:var(--sp-6);height:64px}
+.mark{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em;font-size:18px;text-decoration:none;white-space:nowrap}
+.mark svg{width:26px;height:26px}
+.site-nav{display:flex;gap:var(--sp-5);margin-left:auto;font-size:var(--fs-nav)}
+.site-nav a{text-decoration:none;color:var(--tt-ink-soft);padding:6px 2px;transition:color var(--dur-1) var(--ease)}
+.site-nav a:hover{color:var(--tt-ink)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:0 22px;border-radius:var(--radius-btn);
+  font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;
+  transition:background var(--dur-1) var(--ease),color var(--dur-1) var(--ease),transform var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease);
+}
+.btn:active{transform:scale(.98)}
+.btn--red{background:var(--tt-red-text);color:var(--fg-on-red)}
+.btn--red:hover{background:var(--tt-red-press)}
+.btn--ghost{border-color:var(--tt-ink);color:var(--tt-ink);background:transparent}
+.btn--ghost:hover{background:var(--tt-ink);color:#fff}
+.head-cta{margin-left:var(--sp-4)}
+
+/* ---------- hero ---------- */
+.hero{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:clip;padding-block:calc(var(--section-pad-y) + 64px) var(--section-pad-y)}
+.hero__grid-lines{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--tt-line) 1px,transparent 1px),linear-gradient(90deg,var(--tt-line) 1px,transparent 1px);
+  background-size:96px 96px;
+  mask-image:radial-gradient(ellipse 90% 70% at 30% 40%,#000 30%,transparent 75%);
+}
+.hero__inner{position:relative;display:grid;gap:var(--sp-7)}
+.hero h1{font-size:var(--fs-mega);line-height:var(--lh-display);letter-spacing:-.03em;max-width:12ch}
+.hero h1 em{font-style:normal;color:var(--tt-red-display)}
+.hero__lede{max-width:52ch;font-size:clamp(16px,1.15vw,19px);color:var(--tt-ink-soft)}
+.hero__ctas{display:flex;flex-wrap:wrap;gap:var(--sp-4)}
+.hero__stats{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-6);
+  border-top:var(--hairline);padding-top:var(--sp-6);max-width:760px;
+}
+.stat b{display:block;font-size:var(--fs-stat);font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat b sup{font-size:.4em;color:var(--tt-red-display);top:-.9em}
+.stat span{font-size:var(--fs-small);color:var(--tt-ink-soft)}
+/* entrance choreography — transform/opacity only; hidden state is JS-gated
+   so no-JS visitors always see content */
+.rise{transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.js:not(.rm) .rise{opacity:0;transform:translateY(18px)}
+.js:not(.rm) .rise.in{opacity:1;transform:none}
+
+/* ---------- zones (pinned scroll sequence) ---------- */
+.zones{background:var(--tt-dark);color:var(--fg-on-dark)}
+.zones__track{position:relative}
+/* pinning is opt-in: JS present AND motion allowed */
+.js:not(.rm) .zones__track{height:560vh}
+.js:not(.rm) .zones__stage{position:sticky;top:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;overflow:clip}
+.zones__stage{padding-block:var(--section-pad-y)}
+.zones__head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:var(--sp-5);margin-bottom:var(--sp-7)}
+.zones__head h2{font-size:var(--fs-h1);letter-spacing:-.025em;max-width:16ch}
+.zones .eyebrow{color:#ff6f6f}.zones .eyebrow::before{background:#ff6f6f}
+.zones__progress{display:flex;align-items:center;gap:var(--sp-4);font-variant-numeric:tabular-nums;font-size:var(--fs-small);color:var(--fg-on-dark-soft)}
+.zones__bar{width:180px;height:2px;background:var(--tt-line-on-dark);overflow:hidden;border-radius:2px}
+.zones__bar i{display:block;height:100%;width:100%;background:var(--tt-red-display);transform-origin:left;transform:scaleX(0)}
+.zones__body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(32px,5vw,96px);align-items:center}
+
+/* belt schematic */
+.belt{width:100%}
+.belt .rail{stroke:var(--tt-line-on-dark);stroke-width:2}
+.belt .rail--lit{stroke:var(--tt-red-display);stroke-width:2.5;stroke-dasharray:1;stroke-dashoffset:1;pathLength:1}
+.belt .node circle.ring{fill:var(--tt-dark);stroke:rgba(255 255 255/.3);stroke-width:1.5;transition:stroke var(--dur-2) var(--ease)}
+.belt .node circle.core{fill:rgba(255 255 255/.25);transition:fill var(--dur-2) var(--ease),transform var(--dur-2) var(--ease);transform-origin:center;transform-box:fill-box}
+.belt .node text{fill:var(--fg-on-dark-soft);font-size:11px;font-weight:600;letter-spacing:.08em;transition:fill var(--dur-2) var(--ease)}
+.belt .node.active circle.ring{stroke:var(--tt-red-display)}
+.belt .node.active circle.core{fill:var(--tt-red-display);transform:scale(1.5)}
+.belt .node.active text{fill:#fff}
+.belt .pulley{fill:none;stroke:rgba(255 255 255/.3);stroke-width:2}
+.belt .flow{fill:var(--tt-red-display)}
+
+/* zone cards — stacked list by default (no-JS / reduced-motion);
+   the pinned crossfade treatment is opt-in via .js:not(.rm) */
+.zones__cards{position:relative}
+.zcard{
+  display:flex;flex-direction:column;gap:var(--sp-4);justify-content:center;
+  padding-block:var(--sp-6);border-top:1px solid var(--tt-line-on-dark);
+  transition:opacity .45s var(--ease),transform .45s var(--ease);
+}
+.js:not(.rm) .zones__cards{min-height:340px}
+.js:not(.rm) .zcard{
+  position:absolute;inset:0;padding-block:0;border-top:0;
+  opacity:0;transform:translateY(26px);pointer-events:none;
+  transition-duration:.26s,.26s;   /* exit faster than enter */
+}
+.js:not(.rm) .zcard.active{opacity:1;transform:none;pointer-events:auto;transition-duration:.45s,.45s}
+.zcard__no{font-size:13px;font-weight:600;letter-spacing:.14em;color:#ff6f6f;font-variant-numeric:tabular-nums}
+.zcard h3{font-size:var(--fs-h2);line-height:var(--lh-h2);font-weight:800;letter-spacing:-.02em}
+.zcard p{color:var(--fg-on-dark-soft);max-width:44ch}
+.zcard__chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--sp-2)}
+.chip{font-size:13px;font-weight:500;padding:7px 12px;border:1px solid var(--tt-line-on-dark);border-radius:999px;color:var(--fg-on-dark)}
+.zcard a{color:#fff;font-weight:600;font-size:15px;text-decoration:none;display:inline-flex;gap:8px;align-items:center;margin-top:var(--sp-2)}
+.zcard a::after{content:"→";transition:transform var(--dur-1) var(--ease)}
+.zcard a:hover::after{transform:translateX(4px)}
+
+/* stacked mode: scrub progress is meaningless, hide it */
+html:not(.js) .zones__progress,.rm .zones__progress{display:none}
+
+/* ---------- form ---------- */
+.assess{padding-block:var(--section-pad-y)}
+.assess__grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(32px,5vw,96px)}
+.assess__intro h2{font-size:var(--fs-h1);letter-spacing:-.025em;margin-block:var(--sp-4) var(--sp-4)}
+.assess__intro p{color:var(--tt-ink-soft);max-width:44ch}
+.assess__points{list-style:none;margin:var(--sp-6) 0 0;padding:0;display:grid;gap:var(--sp-3);font-size:15px}
+.assess__points li{display:flex;gap:10px;align-items:baseline}
+.assess__points li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--tt-red-text);flex:none;transform:translateY(-1px)}
+
+.form-card{
+  background:var(--tt-white);border-radius:var(--radius-card);border:var(--hairline);
+  padding:clamp(24px,3vw,48px);box-shadow:0 24px 64px -32px rgba(0 0 0/.12);
+}
+.steps-head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);margin-bottom:var(--sp-3)}
+.steps-head .count{font-size:var(--fs-small);font-weight:600;color:var(--tt-ink-soft);font-variant-numeric:tabular-nums}
+.steps-bar{height:3px;background:var(--tt-line);border-radius:3px;overflow:hidden;margin-bottom:var(--sp-6)}
+.steps-bar i{display:block;height:100%;background:var(--tt-red-text);transform-origin:left;transform:scaleX(.333);transition:transform var(--dur-2) var(--ease)}
+
+.fstep{display:none}
+.fstep.active{display:block;animation:stepIn .3s var(--ease)}
+@keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fstep>legend{font-size:var(--fs-h3);font-weight:700;padding:0;margin-bottom:var(--sp-2)}
+.fstep .sub{color:var(--tt-ink-soft);font-size:15px;margin-bottom:var(--sp-5)}
+fieldset{border:0;margin:0;padding:0}
+
+.problems{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
+.pcard input{position:absolute;opacity:0}
+.pcard label{
+  display:block;border:1px solid var(--tt-line);border-radius:10px;padding:14px 16px;
+  font-size:15px;font-weight:500;cursor:pointer;min-height:44px;
+  transition:border-color var(--dur-1) var(--ease),background var(--dur-1) var(--ease),box-shadow var(--dur-1) var(--ease);
+}
+.pcard label small{display:block;font-weight:400;color:var(--tt-ink-soft);font-size:13px;margin-top:2px}
+.pcard label:hover{border-color:var(--tt-ink-soft)}
+.pcard input:checked+label{border-color:var(--tt-red-text);background:color-mix(in srgb,var(--tt-red-text) 5%,#fff);box-shadow:inset 0 0 0 1px var(--tt-red-text)}
+.pcard input:focus-visible+label{outline:2px solid var(--tt-red-text);outline-offset:2px}
+
+.field{margin-bottom:var(--sp-5)}
+.field label{display:block;font-size:var(--fs-small);font-weight:600;margin-bottom:6px}
+.field label .req{color:var(--tt-red-text)}
+.field input[type=text],.field input[type=email],.field input[type=tel]{
+  width:100%;min-height:46px;padding:10px 14px;border:1px solid var(--tt-line);border-radius:8px;
+  font:inherit;font-size:15px;background:#fff;color:var(--tt-ink);
+  transition:border-color var(--dur-1) var(--ease),box-shadow var(--dur-1) var(--ease);
+}
+.field input:focus{border-color:var(--tt-red-text);box-shadow:0 0 0 3px color-mix(in srgb,var(--tt-red-text) 15%,transparent);outline:none}
+.field .hint{font-size:13px;color:var(--tt-ink-soft);margin-top:5px}
+.field .err{display:none;font-size:13px;font-weight:500;color:var(--tt-red-text);margin-top:5px}
+.field.invalid input{border-color:var(--tt-red-text)}
+.field.invalid .err{display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
+
+.fnav{display:flex;align-items:center;gap:var(--sp-4);margin-top:var(--sp-6)}
+.btn--back{background:transparent;border:none;color:var(--tt-ink-soft);font-weight:600;min-height:44px;padding:0 8px;display:none}
+.btn--back:hover{color:var(--tt-ink)}
+.btn--back.show{display:inline-flex}
+.fnav .btn--red{margin-left:auto;min-width:150px}
+
+.form-done{display:none;text-align:left;padding:var(--sp-6) 0}
+.form-done.show{display:block;animation:stepIn .35s var(--ease)}
+.form-done .tick{width:52px;height:52px;border-radius:50%;background:var(--tt-red-text);display:grid;place-items:center;margin-bottom:var(--sp-5)}
+.form-done h3{font-size:var(--fs-h3);font-weight:700;margin-bottom:var(--sp-2)}
+.form-done p{color:var(--tt-ink-soft);max-width:42ch}
+
+/* ---------- footer note ---------- */
+.port-note{border-top:var(--hairline);padding-block:var(--sp-7);font-size:var(--fs-small);color:var(--tt-ink-soft)}
+.port-note .wrap{display:grid;gap:var(--sp-3);max-width:900px}
+.port-note b{color:var(--tt-ink)}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .site-nav{display:none}
+  .site-head .wrap{gap:var(--sp-4)}
+  .head-cta{margin-left:auto;padding:0 14px;font-size:14px}
+  .hero__stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-4)}
+  .zones__body{grid-template-columns:1fr;gap:var(--sp-6)}
+  .zones__cards{min-height:300px}
+  .assess__grid{grid-template-columns:1fr}
+  .problems{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  .rise{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+<div class="ref-banner"><strong>Reference build.</strong> Port the patterns into the production Next.js codebase — do not paste. Spec: reviews/tru-trac/02-phase-0-implementation.md</div>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="mark" href="#main" aria-label="Tru-Trac home">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="none" stroke="#d52121" stroke-width="3"/><circle cx="13" cy="13" r="4" fill="#d52121"/></svg>
+      TRU-TRAC
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="#zones">The System</a>
+      <a href="#zones">Components</a>
+      <a href="#assess">Solutions</a>
+      <a href="#assess">Knowledge</a>
+    </nav>
+    <a class="btn btn--red head-cta" href="#assess">Request assessment</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero" aria-labelledby="hero-h">
+  <div class="hero__grid-lines" aria-hidden="true"></div>
+  <div class="wrap hero__inner">
+    <p class="eyebrow rise" data-d="0">Engineered conveyor components · Since 1994</p>
+    <h1 id="hero-h" class="rise" data-d="1">We engineer conveyor <em>uptime.</em></h1>
+    <p class="hero__lede rise" data-d="2">Belt tracking, cleaning, impact, sealing and monitoring systems for demanding bulk-handling conveyors — specified, installed and supported as one system, not a catalogue of parts.</p>
+    <div class="hero__ctas rise" data-d="3">
+      <a class="btn btn--red" href="#assess">Request an assessment</a>
+      <a class="btn btn--ghost" href="#zones">Explore the system</a>
+    </div>
+    <dl class="hero__stats rise" data-d="4">
+      <div class="stat"><b><span class="count" data-to="30">0</span><sup>+</sup></b><span>years engineering OEM components</span></div>
+      <div class="stat"><b><span class="count" data-to="80">0</span><sup>+</sup></b><span>countries specify Tru-Trac</span></div>
+      <div class="stat"><b><span class="count" data-to="6">0</span></b><span>continents, supported locally</span></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ ZONES OF CONTROL (pinned scroll) ============ -->
+<section class="zones" id="zones" aria-labelledby="zones-h">
+  <div class="zones__track" id="ztrack">
+    <div class="zones__stage">
+      <div class="wrap">
+        <div class="zones__head">
+          <div>
+            <p class="eyebrow">The system</p>
+            <h2 id="zones-h" style="margin-top:var(--sp-3)">Five zones of control along every belt.</h2>
+          </div>
+          <div class="zones__progress" aria-hidden="true">
+            <span id="zcount">01 / 05</span>
+            <span class="zones__bar"><i id="zbar"></i></span>
+          </div>
+        </div>
+
+        <div class="zones__body">
+          <!-- conveyor schematic -->
+          <svg class="belt" viewBox="0 0 640 260" role="img" aria-label="Conveyor schematic with five zones: load and transfer, carry-side, discharge, return-side, monitoring">
+            <!-- pulleys -->
+            <circle class="pulley" cx="52" cy="130" r="30"/>
+            <circle class="pulley" cx="588" cy="130" r="30"/>
+            <!-- carry rail (top) + return rail (bottom) -->
+            <path class="rail" d="M52 100 H588"/>
+            <path class="rail" d="M52 160 H588"/>
+            <path class="rail rail--lit" id="litRail" d="M52 100 H588"/>
+            <!-- material flow arrow -->
+            <polygon class="flow" points="300,84 316,90 300,96" opacity=".9"/>
+            <!-- zone nodes -->
+            <g class="node" data-z="0"><circle class="ring" cx="120" cy="100" r="13"/><circle class="core" cx="120" cy="100" r="4.5"/><text x="120" y="66" text-anchor="middle">01 LOAD</text></g>
+            <g class="node" data-z="1"><circle class="ring" cx="255" cy="100" r="13"/><circle class="core" cx="255" cy="100" r="4.5"/><text x="255" y="66" text-anchor="middle">02 CARRY</text></g>
+            <g class="node" data-z="2"><circle class="ring" cx="540" cy="100" r="13"/><circle class="core" cx="540" cy="100" r="4.5"/><text x="540" y="66" text-anchor="middle">03 DISCHARGE</text></g>
+            <g class="node" data-z="3"><circle class="ring" cx="320" cy="160" r="13"/><circle class="core" cx="320" cy="160" r="4.5"/><text x="320" y="196" text-anchor="middle">04 RETURN</text></g>
+            <g class="node" data-z="4"><circle class="ring" cx="120" cy="160" r="13"/><circle class="core" cx="120" cy="160" r="4.5"/><text x="120" y="196" text-anchor="middle">05 MONITOR</text></g>
+          </svg>
+
+          <!-- zone narrative -->
+          <div class="zones__cards" id="zcards" aria-live="polite">
+            <article class="zcard active">
+              <span class="zcard__no">ZONE 01 — LOAD &amp; TRANSFER</span>
+              <h3>Where many conveyor problems begin.</h3>
+              <p>Material drop forces damage the belt and misalign the load. Control impact and containment at the transfer point and the rest of the system inherits a stable belt.</p>
+              <div class="zcard__chips"><span class="chip">Impact beds</span><span class="chip">Skirting &amp; sealing</span><span class="chip">Dust control</span></div>
+              <a href="#assess">See load-zone components</a>
+            </article>
+            <article class="zcard">
+              <span class="zcard__no">ZONE 02 — CARRY-SIDE</span>
+              <h3>Stabilise the belt after loading.</h3>
+              <p>Mistracking wanders into spillage, edge damage and structural wear. Carry-side trackers and engineered idlers hold the belt centred at any tonnage.</p>
+              <div class="zcard__chips"><span class="chip">Belt trackers</span><span class="chip">Idlers &amp; frames</span></div>
+              <a href="#assess">See carry-side components</a>
+            </article>
+            <article class="zcard">
+              <span class="zcard__no">ZONE 03 — DISCHARGE</span>
+              <h3>Carryback begins at the discharge point.</h3>
+              <p>Material that clings past the head pulley becomes buildup, spillage and housekeeping risk. Primary and secondary cleaners remove it where it starts.</p>
+              <div class="zcard__chips"><span class="chip">Primary cleaners</span><span class="chip">Secondary cleaners</span></div>
+              <a href="#assess">See discharge components</a>
+            </article>
+            <article class="zcard">
+              <span class="zcard__no">ZONE 04 — RETURN-SIDE</span>
+              <h3>The return run carries the consequences.</h3>
+              <p>Whatever cleaning misses, the return-side spreads along the gantry. Return trackers and plows protect pulleys and keep the tail drift-free.</p>
+              <div class="zcard__chips"><span class="chip">Return trackers</span><span class="chip">V-plows</span></div>
+              <a href="#assess">See return-side components</a>
+            </article>
+            <article class="zcard">
+              <span class="zcard__no">ZONE 05 — MONITORING</span>
+              <h3>Visibility before damage compounds.</h3>
+              <p>Rip detection and belt scales convert the belt from a blind spot into a measured asset — catching the failure before it cascades into the next one.</p>
+              <div class="zcard__chips"><span class="chip">Rip detection</span><span class="chip">Belt scales</span></div>
+              <a href="#assess">See monitoring systems</a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ASSESSMENT (3-step) ============ -->
+<section class="assess" id="assess" aria-labelledby="assess-h">
+  <div class="wrap assess__grid">
+    <div class="assess__intro">
+      <p class="eyebrow">Request an assessment</p>
+      <h2 id="assess-h">Start with the problem, not the paperwork.</h2>
+      <p>Tell us what the belt is doing. A Tru-Trac engineer reviews every request and responds with a diagnosis path — not a sales call.</p>
+      <ul class="assess__points">
+        <li>Reviewed by an engineer within one business day</li>
+        <li>Your details are only needed at the final step</li>
+        <li>Progress is saved if you step away</li>
+      </ul>
+    </div>
+
+    <form class="form-card" id="aform" novalidate>
+      <div class="steps-head">
+        <span class="count" id="stepCount">Step 1 of 3</span>
+        <button type="button" class="btn--back" id="backBtn">← Back</button>
+      </div>
+      <div class="steps-bar" aria-hidden="true"><i id="stepBar"></i></div>
+      <p class="sr-status" id="stepStatus" aria-live="polite" style="position:absolute;left:-9999px">Step 1 of 3: What is happening on the belt?</p>
+
+      <!-- STEP 1 -->
+      <fieldset class="fstep active" data-step="1">
+        <legend>What's happening on the belt?</legend>
+        <p class="sub">Pick the closest match — you can add detail later.</p>
+        <div class="problems">
+          <div class="pcard"><input type="radio" name="problem" id="p1" value="mistracking"><label for="p1">Belt mistracking &amp; wander<small>The belt drifts off its intended centre line</small></label></div>
+          <div class="pcard"><input type="radio" name="problem" id="p2" value="carryback"><label for="p2">Carryback &amp; buildup<small>Material clings to the belt past discharge</small></label></div>
+          <div class="pcard"><input type="radio" name="problem" id="p3" value="spillage"><label for="p3">Spillage &amp; dust at transfer<small>Material escapes at loading points</small></label></div>
+          <div class="pcard"><input type="radio" name="problem" id="p4" value="impact"><label for="p4">Impact damage at loading<small>Drop forces damaging belt and structure</small></label></div>
+          <div class="pcard"><input type="radio" name="problem" id="p5" value="rip"><label for="p5">Belt rip or tear risk<small>Trapped objects, longitudinal damage</small></label></div>
+          <div class="pcard"><input type="radio" name="problem" id="p6" value="measurement"><label for="p6">Scale accuracy drift<small>Production or stock measurements disagree</small></label></div>
+        </div>
+        <div class="field" style="margin-top:var(--sp-4)"><p class="err" id="probErr" role="alert">Select the problem that best matches — it routes your request to the right engineer.</p></div>
+      </fieldset>
+
+      <!-- STEP 2 -->
+      <fieldset class="fstep" data-step="2">
+        <legend>About the site</legend>
+        <p class="sub">Enough context to prepare, nothing more.</p>
+        <div class="field">
+          <label for="f-site">Site / operation <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="f-site" name="site" required autocomplete="organization">
+          <p class="hint">e.g. Mine name, port terminal, cement plant</p>
+          <p class="err" role="alert">Enter the site or operation name so the engineer can prepare.</p>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label for="f-material">Material conveyed <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="f-material" name="material" required>
+            <p class="hint">e.g. Iron ore, coal, clinker</p>
+            <p class="err" role="alert">Enter the material — it changes the component spec.</p>
+          </div>
+          <div class="field">
+            <label for="f-duty">Duty cycle</label>
+            <input type="text" id="f-duty" name="duty">
+            <p class="hint">e.g. 2,500 tph, 24/7 — optional</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- STEP 3 -->
+      <fieldset class="fstep" data-step="3">
+        <legend>Where do we send the diagnosis?</legend>
+        <p class="sub">An engineer replies within one business day.</p>
+        <div class="two-col">
+          <div class="field">
+            <label for="f-name">Full name <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="f-name" name="name" required autocomplete="name">
+            <p class="err" role="alert">Enter your name.</p>
+          </div>
+          <div class="field">
+            <label for="f-role">Role</label>
+            <input type="text" id="f-role" name="role" autocomplete="organization-title">
+            <p class="hint">e.g. Reliability engineer — optional</p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-email">Work email <span class="req" aria-hidden="true">*</span></label>
+          <input type="email" id="f-email" name="email" required autocomplete="email" inputmode="email">
+          <p class="err" role="alert">Enter a valid email — the diagnosis is sent here.</p>
+        </div>
+        <div class="field">
+          <label for="f-phone">Phone</label>
+          <input type="tel" id="f-phone" name="phone" autocomplete="tel" inputmode="tel">
+          <p class="hint">Optional — for time-critical failures</p>
+        </div>
+      </fieldset>
+
+      <div class="fnav" id="fnav">
+        <button type="button" class="btn btn--red" id="nextBtn">Continue</button>
+      </div>
+
+      <div class="form-done" id="formDone" tabindex="-1">
+        <div class="tick" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13l4.5 4.5L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Request received.</h3>
+        <p>An engineer is reviewing your belt problem. You'll get a diagnosis path — likely causes, what to inspect, and the components involved — within one business day.</p>
+      </div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="port-note">
+  <div class="wrap">
+    <p><b>Porting notes for the production team.</b> This page is framework-free on purpose; every pattern maps 1:1 to the Next.js stack.</p>
+    <p>① Zones sequence → GSAP ScrollTrigger: <code>pin: true, scrub: 1, end: '+=460%'</code>; call <code>ScrollTrigger.refresh()</code> after fonts/images load; keep it the only pinned section on the page. ② No-JS and reduced-motion render the zones as a stacked list — preserve that behavior (SEO + a11y). ③ All motion is transform/opacity only; durations come from <code>--dur-1/--dur-2</code> and one ease token. ④ Form: labels stay visible, hints persist below fields, errors are <code>role="alert"</code> below the field, validation on blur + on step change, first invalid field gets focus, step state saves to <code>sessionStorage</code>. ⑤ Red usage: <code>#d52121</code> for text/interactive (AA), <code>#e52a2a</code> only ≥24px type. Acceptance checks: 02-phase-0-implementation.md.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var doc=document.documentElement;
+  doc.classList.add('js');
+  var RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(RM)doc.classList.add('rm');
+
+  /* ---------- hero entrance + counters ---------- */
+  var rises=[].slice.call(document.querySelectorAll('.rise'));
+  if(RM){rises.forEach(function(el){el.classList.add('in')});}
+  else{
+    rises.forEach(function(el){
+      var d=+el.getAttribute('data-d')||0;
+      setTimeout(function(){el.classList.add('in')},120+d*110);
+    });
+  }
+  function countUp(el){
+    var to=+el.getAttribute('data-to'),t0=null,dur=1100;
+    if(RM){el.textContent=to;return;}
+    function tick(t){
+      if(!t0)t0=t;var p=Math.min(1,(t-t0)/dur);
+      p=1-Math.pow(1-p,3); /* ease-out cubic */
+      el.textContent=Math.round(to*p);
+      if(p<1)requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  var statsSeen=false;
+  new IntersectionObserver(function(es,io){
+    es.forEach(function(e){
+      if(e.isIntersecting&&!statsSeen){statsSeen=true;
+        document.querySelectorAll('.hero__stats .count').forEach(countUp);io.disconnect();}
+    });
+  },{threshold:.4}).observe(document.querySelector('.hero__stats'));
+
+  /* ---------- zones pinned scrub ---------- */
+  var track=document.getElementById('ztrack'),
+      cards=[].slice.call(document.querySelectorAll('.zcard')),
+      nodes=[].slice.call(document.querySelectorAll('.belt .node')),
+      bar=document.getElementById('zbar'),
+      lit=document.getElementById('litRail'),
+      zcount=document.getElementById('zcount'),
+      N=cards.length,active=-1;
+
+  function setActive(i){
+    if(i===active)return;active=i;
+    cards.forEach(function(c,k){c.classList.toggle('active',k===i)});
+    nodes.forEach(function(n){n.classList.toggle('active',+n.getAttribute('data-z')===i)});
+    zcount.textContent='0'+(i+1)+' / 0'+N;
+  }
+  setActive(0);
+
+  if(!RM){
+    var ticking=false;
+    function onScroll(){
+      if(ticking)return;ticking=true;
+      requestAnimationFrame(function(){
+        ticking=false;
+        var r=track.getBoundingClientRect(),
+            vh=innerHeight,
+            total=r.height-vh,
+            p=Math.min(1,Math.max(0,-r.top/total));   /* 0..1 through the track */
+        bar.style.transform='scaleX('+p+')';
+        lit.style.strokeDashoffset=1-p;               /* pathLength=1 scrub */
+        setActive(Math.min(N-1,Math.floor(p*N)));
+      });
+    }
+    addEventListener('scroll',onScroll,{passive:true});
+    onScroll();
+  }else{
+    bar.style.transform='scaleX(1)';lit.style.strokeDashoffset=0;
+  }
+
+  /* ---------- 3-step form ---------- */
+  var form=document.getElementById('aform'),
+      steps=[].slice.call(form.querySelectorAll('.fstep')),
+      nextBtn=document.getElementById('nextBtn'),
+      backBtn=document.getElementById('backBtn'),
+      stepBar=document.getElementById('stepBar'),
+      stepCount=document.getElementById('stepCount'),
+      status=document.getElementById('stepStatus'),
+      done=document.getElementById('formDone'),
+      fnav=document.getElementById('fnav'),
+      cur=0,KEY='tt-assess-demo';
+
+  /* restore draft */
+  try{
+    var saved=JSON.parse(sessionStorage.getItem(KEY)||'{}');
+    Object.keys(saved).forEach(function(n){
+      var el=form.elements[n];if(!el)return;
+      if(el.type==='radio'||(el.length&&el[0]&&el[0].type==='radio')){
+        var r=form.querySelector('[name="'+n+'"][value="'+saved[n]+'"]');if(r)r.checked=true;
+      }else el.value=saved[n];
+    });
+  }catch(e){}
+  form.addEventListener('input',function(){
+    try{
+      var o={};[].forEach.call(form.elements,function(el){
+        if(!el.name)return;
+        if(el.type==='radio'){if(el.checked)o[el.name]=el.value;}
+        else if(el.type!=='button')o[el.name]=el.value;
+      });
+      sessionStorage.setItem(KEY,JSON.stringify(o));
+    }catch(e){}
+  });
+
+  function legendOf(i){return steps[i].querySelector('legend').textContent}
+  function show(i){
+    steps.forEach(function(s,k){s.classList.toggle('active',k===i)});
+    cur=i;
+    stepCount.textContent='Step '+(i+1)+' of 3';
+    stepBar.style.transform='scaleX('+((i+1)/3)+')';
+    backBtn.classList.toggle('show',i>0);
+    nextBtn.textContent=i===2?'Send to an engineer':'Continue';
+    status.textContent='Step '+(i+1)+' of 3: '+legendOf(i);
+    var first=steps[i].querySelector('input');
+    if(first)first.focus({preventScroll:false});
+  }
+
+  function validateField(input){
+    var field=input.closest('.field');if(!field)return true;
+    var ok=input.checkValidity();
+    field.classList.toggle('invalid',!ok);
+    return ok;
+  }
+  form.addEventListener('blur',function(e){
+    if(e.target.matches('input[required]'))validateField(e.target);
+  },true);
+  form.addEventListener('input',function(e){
+    var f=e.target.closest&&e.target.closest('.field');
+    if(f&&f.classList.contains('invalid')&&e.target.checkValidity())f.classList.remove('invalid');
+  });
+
+  function validateStep(i){
+    var s=steps[i],ok=true,firstBad=null;
+    if(i===0){
+      var picked=s.querySelector('input[name=problem]:checked');
+      document.getElementById('probErr').style.display=picked?'none':'block';
+      if(!picked){ok=false;firstBad=s.querySelector('input[name=problem]');}
+    }
+    [].forEach.call(s.querySelectorAll('input[required]'),function(inp){
+      if(!validateField(inp)){ok=false;firstBad=firstBad||inp;}
+    });
+    if(firstBad)firstBad.focus();
+    return ok;
+  }
+
+  nextBtn.addEventListener('click',function(){
+    if(!validateStep(cur))return;
+    if(cur<2){show(cur+1);return;}
+    /* submit */
+    nextBtn.disabled=true;nextBtn.textContent='Sending…';
+    setTimeout(function(){                 /* demo stand-in for the POST */
+      steps.forEach(function(s){s.classList.remove('active')});
+      fnav.style.display='none';
+      document.querySelector('.steps-head').style.display='none';
+      document.querySelector('.steps-bar').style.display='none';
+      done.classList.add('show');done.focus();
+      status.textContent='Request received. An engineer replies within one business day.';
+      try{sessionStorage.removeItem(KEY)}catch(e){}
+    },700);
+  });
+  backBtn.addEventListener('click',function(){if(cur>0)show(cur-1)});
+  form.addEventListener('submit',function(e){e.preventDefault();nextBtn.click()});
+})();
+</script>
+
+</body>
+</html>
